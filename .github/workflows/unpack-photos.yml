@@ -1,0 +1,38 @@
+name: Install photo bundle
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  install-photos:
+    if: ${{ github.actor != 'github-actions[bot]' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Unpack photo bundle
+        run: |
+          if [ ! -f photo-upload.zip ]; then
+            echo "No photo-upload.zip found; nothing to do."
+            exit 0
+          fi
+          mkdir -p photos
+          unzip -o photo-upload.zip -d photos
+          rm photo-upload.zip
+
+      - name: Commit photos
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add photos
+          if git diff --cached --quiet; then
+            echo "No photo changes to commit."
+          else
+            git commit -m "Install photo bundle"
+            git push
+          fi
